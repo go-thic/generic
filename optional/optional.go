@@ -11,7 +11,7 @@ type Option interface {
 }
 
 func New[V any](v V, isSome bool) Optional[V] {
-	return Value[V]{isSome, v}
+	return Value[V]{isSome: isSome, val: v}
 }
 
 func None[V any]() Optional[V] {

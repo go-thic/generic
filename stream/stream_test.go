@@ -76,9 +76,12 @@ func TestNewMapper(t *testing.T) {
 	x := Transpose(ToString[int])(1)
 	assert.Equal(t, "1", x.Val())
 
-	m := NewMapper(NewProvider(WithValues(1, 2, 3, 4)), Transpose(ToString[int])).Limit(Count(4))
+	m := NewMapper(NewProvider(WithValues(1, 2, 3, 4)), Transpose(ToString[int])).Limit(Count(3))
 	assert.NotNil(t, m)
-	assert.Equal(t, []DST{"1", "2", "3", "4"}, m)
+	assert.Equal(t, "1", <-m.values)
+	assert.Equal(t, "2", <-m.values)
+	assert.Equal(t, "3", <-m.values)
+	assert.Equal(t, nil, <-m.values)
 }
 
 // FizzBuzz just for fun!

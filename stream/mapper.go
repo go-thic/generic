@@ -7,28 +7,33 @@ import (
 	"github.com/go-thic/generic/optional"
 )
 
-func NewMapper[S, D VAL](s *Stream[S], doMap func(elem S) (optional.Optional[D], bool)) *Stream[D] {
-	valueChan := make(chan D)
-	stopChan := make(chan empty)
+type SRC interface {
+	any
+}
 
-	mapperStream := New[D](valueChan, stopChan)
+type DST interface {
+	any
+}
+
+func NewMapper[S, D VAL](s *Stream, doMap func(elem S) optional.Optional[D]) *Stream {
+	valueChan := make(chan any)
+
+	mapperStream := newImpl(valueChan)
 
 	go func() {
 		defer func() {
 			close(valueChan)
-			close(stopChan)
 			if r := recover(); r != nil {
 				log.Printf("panic: %q", r)
 			}
 		}()
 
 		for v := range s.values {
-			mapped, stopMapping := doMap(v)
-			if mapped.IsSome() {
-				mapperStream.Write(mapped.Val())
-			}
-			if stopMapping {
-				break
+			if val, ok := v.(S); ok {
+				mapped := doMap(val)
+				if mapped.IsSome() {
+					mapperStream.Write(mapped.Val())
+				}
 			}
 		}
 	}()
@@ -36,10 +41,30 @@ func NewMapper[S, D VAL](s *Stream[S], doMap func(elem S) (optional.Optional[D],
 	return mapperStream
 }
 
-func Map[S, D VAL](mapFunc func(elem S) (D, bool)) func(elem S) (optional.Optional[D], bool) {
-	return func(elem S) (optional.Optional[D], bool) {
-		mappedVal, stopMapping := mapFunc(elem)
-		return optional.New(mappedVal, !stopMapping), stopMapping
+func Transpose[S, D VAL](mapFunc func(elem S) (D, bool)) func(elem S) optional.Optional[D] {
+	return func(elem S) optional.Optional[D] {
+		mappedVal, isSome := mapFunc(elem)
+		return optional.New(mappedVal, !isSome)
+	}
+}
+
+func Map[S, D VAL](mapper func(S) D) func(elem SRC) (DST, bool) {
+	return func(elem SRC) (DST, bool) {
+		if s, ok := elem.(S); ok {
+			return mapper(s), false
+		}
+		var zero DST
+		return zero, true
+	}
+}
+
+func Filter[S VAL](filter func(elem S) bool) func(elem SRC) (DST, bool) {
+	return func(elem SRC) (DST, bool) {
+		if s, ok := elem.(S); ok {
+			return s, filter(s)
+		}
+		var zero DST
+		return zero, false
 	}
 }
 

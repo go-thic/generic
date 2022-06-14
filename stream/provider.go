@@ -5,18 +5,16 @@ import (
 	"log"
 )
 
-type ProviderFunc[V VAL] func() optional.Optional[V]
+type ProviderFunc func() optional.Optional[VAL]
 
-func NewProvider[V VAL](generate func() optional.Optional[V]) *Stream[V] {
-	valueChan := make(chan V)
-	stopChan := make(chan empty)
+func NewProvider(generate ProviderFunc) *Stream {
+	valueChan := make(chan any)
 
-	providerStream := New(valueChan, stopChan)
+	providerStream := newImpl(valueChan)
 
 	go func() {
 		defer func() {
 			close(valueChan)
-			close(stopChan)
 			if r := recover(); r != nil {
 				log.Printf("panic: %q", r)
 			}
@@ -24,16 +22,11 @@ func NewProvider[V VAL](generate func() optional.Optional[V]) *Stream[V] {
 
 	generating:
 		for {
-			select {
-			case <-stopChan:
+			v := generate()
+			if v.IsSome() {
+				providerStream.Write(v.Val())
+			} else {
 				break generating
-			default:
-				v := generate()
-				if v.IsSome() {
-					providerStream.Write(v.Val())
-				} else {
-					break generating
-				}
 			}
 		}
 	}()
@@ -41,16 +34,16 @@ func NewProvider[V VAL](generate func() optional.Optional[V]) *Stream[V] {
 	return providerStream
 }
 
-func WithValues[T VAL](s ...T) ProviderFunc[T] {
-	a := make([]T, len(s))
+func WithValues(s ...VAL) ProviderFunc {
+	a := make([]VAL, len(s))
 	copy(a, s)
 
-	return func() optional.Optional[T] {
-		var next T
+	return func() optional.Optional[VAL] {
 		if len(a) > 0 {
+			var next VAL
 			next, a = a[0], a[1:]
 			return optional.New(next, true)
 		}
-		return optional.None[T]()
+		return optional.None[VAL]()
 	}
 }

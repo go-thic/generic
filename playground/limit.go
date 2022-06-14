@@ -1,4 +1,4 @@
-package stream
+package playground
 
 import "github.com/go-thic/generic/optional"
 
@@ -12,8 +12,8 @@ func WithLimit[V VAL](limit LimitFunc[VAL]) func(elem V) (optional.Optional[V], 
 	}
 }
 
-func Count(i int) func(_ VAL) bool {
-	return func(_ VAL) bool {
+func Count[V any](i int) func(_ V) bool {
+	return func(_ V) bool {
 		i--
 		return i < 0
 	}

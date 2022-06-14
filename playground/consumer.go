@@ -1,4 +1,4 @@
-package stream
+package playground
 
 import (
 	"github.com/go-thic/generic/optional"
@@ -7,23 +7,25 @@ import (
 
 type ConsumerFunc[V VAL] func(elem V) (optional.Optional[V], bool)
 
-func NewConsumer(s *Stream, consume ConsumerFunc[VAL]) *Stream {
-	valueChan := make(chan any)
+func NewConsumer[V VAL](s *Stream[V], consume ConsumerFunc[V]) *Stream[VAL] {
+	valueChan := make(chan VAL)
+	stopChan := make(chan empty)
 
-	consumerStream := newImpl(valueChan)
+	consumerStream := New(valueChan, stopChan)
 
 	go func() {
 		defer func() {
 			close(valueChan)
+			close(stopChan)
 			if r := recover(); r != nil {
 				log.Printf("panic: %q", r)
 			}
 		}()
 
 		for v := range s.values {
-			consumed, stopConsuming := consume(v)
-			if consumed.IsSome() {
-				consumerStream.Write(consumed.Val())
+			res, stopConsuming := consume(v)
+			if res.IsSome() {
+				consumerStream.Write(res.Val())
 			}
 			if stopConsuming {
 				break

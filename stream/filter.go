@@ -1,12 +1,12 @@
 package stream
 
-func Equals[V comparable](s ...V) func(elem VAL) bool {
-	return func(elem VAL) bool {
-		for _, t := range s {
-			if t == elem {
-				return true
-			}
-		}
-		return false
+func Equals[V comparable](compare ...V) func(elem V) bool {
+	lookup := make(map[V]bool)
+	for _, v := range compare {
+		lookup[v] = true
+	}
+
+	return func(elem V) bool {
+		return lookup[elem]
 	}
 }

@@ -4,7 +4,7 @@ import "github.com/go-thic/generic/optional"
 
 type LimitFunc[V VAL] func(elem V) bool
 
-func WithLimit[V VAL](limit LimitFunc[VAL]) func(elem V) (optional.Optional[V], bool) {
+func withLimitFunc[V VAL](limit LimitFunc[VAL]) func(elem V) (optional.Optional[V], bool) {
 	return func(elem V) (optional.Optional[V], bool) {
 		isLimit := limit(elem)
 		stopConsuming := isLimit

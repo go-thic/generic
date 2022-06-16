@@ -47,3 +47,12 @@ func WithValues(s ...VAL) ProviderFunc {
 		return optional.None[VAL]()
 	}
 }
+
+func StartCountingFrom(start int) ProviderFunc {
+	next := start
+	return func() optional.Optional[VAL] {
+		ret := next
+		next++
+		return optional.New[VAL](ret, true)
+	}
+}

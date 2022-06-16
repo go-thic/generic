@@ -19,7 +19,7 @@ func (s *Stream) Write(val any) {
 }
 
 func (s *Stream) Limit(limit func(elem VAL) bool) *Stream {
-	return NewConsumer(s, WithLimit[VAL](limit))
+	return NewConsumer(s, withLimitFunc[VAL](limit))
 }
 
 func (s *Stream) Do(theNeedful func(elem SRC) (DST, bool)) *Stream {

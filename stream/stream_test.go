@@ -61,14 +61,29 @@ func TestNewProvider(t *testing.T) {
 }
 
 func TestStream_Limit(t *testing.T) {
-	s := NewProvider(WithValues("a", "b", "c")).Limit(Count(3))
+	t.Run("Limit fixed amount of streamed values", func(t *testing.T) {
+		s := NewProvider(WithValues("a", "b", "c")).Limit(Count(3))
 
-	assert.NotNil(t, s)
-	assert.Equal(t, "a", <-s.values)
-	assert.Equal(t, "b", <-s.values)
-	assert.Equal(t, "c", <-s.values)
-	assert.NotPanics(t, func() {
-		<-s.values
+		assert.NotNil(t, s)
+		assert.Equal(t, "a", <-s.values)
+		assert.Equal(t, "b", <-s.values)
+		assert.Equal(t, "c", <-s.values)
+		assert.NotPanics(t, func() {
+			<-s.values
+		})
+	})
+
+	t.Run("Limit endless stream", func(t *testing.T) {
+		x, c := 0, 0
+
+		sumUpAndCount := func(i int) {
+			x = x + i
+			c++
+		}
+		NewProvider(StartCountingFrom(10)).Limit(Count(100)).Finally(Do(sumUpAndCount))
+
+		assert.Equal(t, 100, c)
+		assert.Equal(t, ((109*110)/2)-((9*10)/2), x)
 	})
 }
 
@@ -108,9 +123,11 @@ func FizzBuzz(number int) string {
 func TestStream_Map(t *testing.T) {
 	t.Run("Do ints to strings", func(t *testing.T) {
 		var strSlice []string
-		NewProvider(WithValues(1, 2, 3, 4, 5)).Do(Map(FizzBuzz)).Finally(Do(func(s string) {
+		collectStrings := func(s string) {
 			strSlice = append(strSlice, s)
-		}))
+		}
+		NewProvider(WithValues(1, 2, 3, 4, 5)).Do(Map(FizzBuzz)).Finally(Do(collectStrings))
+
 		assert.NotNil(t, strSlice)
 		assert.Equal(t, []string{"1", "2", "Fizz", "4", "Buzz"}, strSlice)
 	})
@@ -118,23 +135,23 @@ func TestStream_Map(t *testing.T) {
 
 func TestImpl_Do(t *testing.T) {
 	t.Run("Filter and finally sum up", func(t *testing.T) {
-		x := 0
+		sum := 0
 		unevenNumbers := func(n int) bool { return n%2 != 0 }
-		sumUp := func(elem int) {
-			x += elem
-		}
+		sumUp := func(elem int) { sum += elem }
+
 		NewProvider(WithValues(1, 2, 3, 4, 5)).Do(Filter(unevenNumbers)).Finally(Do(sumUp))
 
-		assert.Equal(t, 6, x)
+		assert.Equal(t, 6, sum)
 	})
 
 	t.Run("Filter and collect in a slice of strings", func(t *testing.T) {
-		var result []string
+		var strSlice []string
+		collectStrings := func(s string) {
+			strSlice = append(strSlice, s)
+		}
 
-		NewProvider(WithValues("Hello", "sad, sad", "World")).Do(Filter(Equals("sad, sad"))).Finally(Do(func(s string) {
-			result = append(result, s)
-		}))
+		NewProvider(WithValues("Hello", "sad, sad", "World", "sad, sad")).Do(Filter(Equals("sad, sad"))).Finally(Do(collectStrings))
 
-		assert.Equal(t, []string{"Hello", "World"}, result)
+		assert.Equal(t, []string{"Hello", "World"}, strSlice)
 	})
 }

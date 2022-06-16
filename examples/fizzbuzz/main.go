@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-thic/generic/stream"
 	"strconv"
+
+	"github.com/go-thic/generic/stream"
 )
 
 func FizzBuzz(number int) string {

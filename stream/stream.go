@@ -23,7 +23,7 @@ func (s *Stream) Limit(limit func(elem VAL) bool) *Stream {
 }
 
 func (s *Stream) Do(theNeedful func(elem SRC) (DST, bool)) *Stream {
-	return NewMapper(s, Transpose(theNeedful))
+	return NewMapper(s, transpose(theNeedful))
 }
 
 func (s *Stream) Finally(fun func(elem VAL)) {

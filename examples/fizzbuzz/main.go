@@ -30,6 +30,12 @@ func main() {
 	stream.NewProvider(stream.StartCountingFrom(0)).
 		Limit(stream.Count(100)).
 		Do(stream.Map(FizzBuzz)).
+		Do(stream.Filter(func(s string) bool {
+			if _, err := strconv.Atoi(s); err == nil {
+				return true
+			}
+			return false
+		})).
 		Finally(stream.Do(func(s string) {
 			fmt.Println(s)
 		}))

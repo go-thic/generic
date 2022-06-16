@@ -41,7 +41,7 @@ func NewMapper[S, D VAL](s *Stream, doMap func(elem S) optional.Optional[D]) *St
 	return mapperStream
 }
 
-func Transpose[S, D VAL](mapFunc func(elem S) (D, bool)) func(elem S) optional.Optional[D] {
+func transpose[S, D VAL](mapFunc func(elem S) (D, bool)) func(elem S) optional.Optional[D] {
 	return func(elem S) optional.Optional[D] {
 		mappedVal, isSome := mapFunc(elem)
 		return optional.New(mappedVal, !isSome)

@@ -23,7 +23,7 @@ func TestNone(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	t.Run("New of None returns None", func(t *testing.T) {
+	t.Run("New of None returns None that is some", func(t *testing.T) {
 		none := None[int]()
 		got := New(none, true)
 

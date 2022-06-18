@@ -1,11 +1,40 @@
 package stream
 
+import "log"
+
 type VAL interface {
 	any
 }
 
 type Stream struct {
 	values chan any
+}
+
+func New(generate ProviderFunc) *Stream {
+	valueChan := make(chan any)
+
+	providerStream := newImpl(valueChan)
+
+	go func() {
+		defer func() {
+			close(valueChan)
+			if r := recover(); r != nil {
+				log.Printf("panic: %q", r)
+			}
+		}()
+
+	generating:
+		for {
+			v := generate()
+			if v.IsSome() {
+				providerStream.Write(v.Val())
+			} else {
+				break generating
+			}
+		}
+	}()
+
+	return providerStream
 }
 
 func newImpl(values chan any) *Stream {

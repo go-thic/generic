@@ -49,7 +49,7 @@ func TestGenerate(t *testing.T) {
 
 func TestNewProvider(t *testing.T) {
 	t.Run("Test if values arrive", func(t *testing.T) {
-		s := NewProvider(WithValues(1, 2, 3))
+		s := New(WithValues(1, 2, 3))
 
 		assert.Equal(t, 1, <-s.values)
 		assert.Equal(t, 2, <-s.values)
@@ -62,7 +62,7 @@ func TestNewProvider(t *testing.T) {
 
 func TestStream_Limit(t *testing.T) {
 	t.Run("Limit fixed amount of streamed values", func(t *testing.T) {
-		s := NewProvider(WithValues("a", "b", "c")).Limit(Count(3))
+		s := New(WithValues("a", "b", "c")).Limit(Count(3))
 
 		assert.NotNil(t, s)
 		assert.Equal(t, "a", <-s.values)
@@ -80,7 +80,7 @@ func TestStream_Limit(t *testing.T) {
 			x = x + i
 			c++
 		}
-		NewProvider(StartCountingFrom(10)).Limit(Count(100)).Finally(Do(sumUpAndCount))
+		New(StartCountingFrom(10)).Limit(Count(100)).Finally(Do(sumUpAndCount))
 
 		assert.Equal(t, 100, c)
 		assert.Equal(t, ((109*110)/2)-((9*10)/2), x)
@@ -91,7 +91,7 @@ func TestNewMapper(t *testing.T) {
 	x := transpose(ToString[int])(1)
 	assert.Equal(t, "1", x.Val())
 
-	m := NewMapper(NewProvider(WithValues(1, 2, 3, 4)), transpose(ToString[int])).Limit(Count(3))
+	m := NewMapper(New(WithValues(1, 2, 3, 4)), transpose(ToString[int])).Limit(Count(3))
 	assert.NotNil(t, m)
 	assert.Equal(t, "1", <-m.values)
 	assert.Equal(t, "2", <-m.values)
@@ -126,7 +126,7 @@ func TestStream_Map(t *testing.T) {
 		collectStrings := func(s string) {
 			strSlice = append(strSlice, s)
 		}
-		NewProvider(WithValues(1, 2, 3, 4, 5)).Do(Map(FizzBuzz)).Finally(Do(collectStrings))
+		New(WithValues(1, 2, 3, 4, 5)).Do(Map(FizzBuzz)).Finally(Do(collectStrings))
 
 		assert.NotNil(t, strSlice)
 		assert.Equal(t, []string{"1", "2", "Fizz", "4", "Buzz"}, strSlice)
@@ -139,7 +139,7 @@ func TestImpl_Do(t *testing.T) {
 		unevenNumbers := func(n int) bool { return n%2 != 0 }
 		sumUp := func(elem int) { sum += elem }
 
-		NewProvider(WithValues(1, 2, 3, 4, 5)).Do(Filter(unevenNumbers)).Finally(Do(sumUp))
+		New(WithValues(1, 2, 3, 4, 5)).Do(Filter(unevenNumbers)).Finally(Do(sumUp))
 
 		assert.Equal(t, 6, sum)
 	})
@@ -150,7 +150,7 @@ func TestImpl_Do(t *testing.T) {
 			strSlice = append(strSlice, s)
 		}
 
-		NewProvider(WithValues("Hello", "sad, sad", "World", "sad, sad")).Do(Filter(Equals("sad, sad"))).Finally(Do(collectStrings))
+		New(WithValues("Hello", "sad, sad", "World", "sad, sad")).Do(Filter(Equals("sad, sad"))).Finally(Do(collectStrings))
 
 		assert.Equal(t, []string{"Hello", "World"}, strSlice)
 	})

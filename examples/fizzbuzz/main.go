@@ -28,7 +28,7 @@ func FizzBuzz(number int) string {
 }
 
 func main() {
-	stream.NewProvider(stream.StartCountingFrom(0)).
+	stream.New(stream.StartCountingFrom(0)).
 		Limit(stream.Count(100)).
 		Do(stream.Map(FizzBuzz)).
 		Do(stream.Filter(func(s string) bool {

@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	stream.NewProvider(stream.StartCountingFrom(int64(0))).
+	stream.New(stream.StartCountingFrom(int64(0))).
 		Limit(stream.Count(30)).
 		Do(stream.Map(fibo())).
 		Finally(stream.Do(func(fibo int64) {

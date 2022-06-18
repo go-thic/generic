@@ -48,7 +48,11 @@ func WithValues(s ...VAL) ProviderFunc {
 	}
 }
 
-func StartCountingFrom(start int) ProviderFunc {
+type Countable interface {
+	int64 | int32 | int | int16 | int8 | float64 | float32
+}
+
+func StartCountingFrom[T Countable](start T) ProviderFunc {
 	next := start
 	return func() optional.Optional[VAL] {
 		ret := next

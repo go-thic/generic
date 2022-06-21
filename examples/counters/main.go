@@ -11,5 +11,4 @@ func main() {
 		Finally(stream.Do(func(elem float64) {
 			fmt.Println(elem)
 		}))
-
 }

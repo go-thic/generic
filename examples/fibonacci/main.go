@@ -6,18 +6,17 @@ import (
 )
 
 func main() {
-	stream.New(stream.StartCountingFrom(int64(0))).
+	stream.New(stream.WithGenerator(fibo())).
 		Limit(stream.Count(30)).
-		Do(stream.Map(fibo())).
 		Finally(stream.Do(func(fibo int64) {
 			fmt.Println(fibo)
 		}))
 }
 
-func fibo() func(f int64) int64 {
+func fibo() func() int64 {
 	previous := int64(0)
 	next := int64(1)
-	return func(f int64) int64 {
+	return func() int64 {
 		next, previous = previous+next, next
 		return next
 	}

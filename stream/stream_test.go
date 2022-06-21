@@ -9,7 +9,7 @@ import (
 
 func TestGenerate(t *testing.T) {
 	t.Run("WithValues", func(t *testing.T) {
-		generator := WithValues()
+		generator := WithValues[int]()
 		assert.NotPanics(t, func() {
 			_ = generator()
 		})
@@ -26,7 +26,7 @@ func TestGenerate(t *testing.T) {
 		assert.Equal(t, 1, a.Val())
 		assert.Equal(t, 2, generator().Val())
 		assert.Equal(t, 3, generator().Val())
-		assert.Equal(t, optional.None[VAL](), generator())
+		assert.Equal(t, optional.None[int](), generator())
 		assert.Panics(t, func() {
 			generator().Val()
 		})
@@ -40,7 +40,8 @@ func TestGenerate(t *testing.T) {
 		assert.Equal(t, "a", a.Val())
 		assert.Equal(t, "b", generator().Val())
 		assert.Equal(t, "c", generator().Val())
-		assert.Equal(t, optional.None[VAL](), generator())
+		assert.Equal(t, optional.None[string](), generator())
+		assert.True(t, generator().IsNone())
 		assert.Panics(t, func() {
 			generator().Val()
 		})

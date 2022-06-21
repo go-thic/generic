@@ -1,6 +1,9 @@
 package stream
 
-import "log"
+import (
+	"github.com/go-thic/generic/optional"
+	"log"
+)
 
 type VAL interface {
 	any
@@ -10,7 +13,7 @@ type Stream struct {
 	values chan any
 }
 
-func New(generate ProviderFunc) *Stream {
+func New[T any](generate func() optional.Optional[T]) *Stream {
 	valueChan := make(chan any)
 
 	providerStream := newImpl(valueChan)
@@ -48,7 +51,7 @@ func (s *Stream) Write(val any) {
 }
 
 func (s *Stream) Limit(limit func(elem VAL) bool) *Stream {
-	return NewConsumer(s, withLimitFunc[VAL](limit))
+	return NewConsumer(s, withLimitFunc(limit))
 }
 
 func (s *Stream) Do(theNeedful func(elem SRC) (DST, bool)) *Stream {

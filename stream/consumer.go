@@ -5,9 +5,7 @@ import (
 	"log"
 )
 
-type ConsumerFunc[V VAL] func(elem V) (optional.Optional[V], bool)
-
-func NewConsumer(s *Stream, consume ConsumerFunc[VAL]) *Stream {
+func NewConsumer[T any](s *Stream, consume func(elem T) (optional.Optional[T], bool)) *Stream {
 	valueChan := make(chan any)
 
 	consumerStream := newImpl(valueChan)
@@ -21,12 +19,14 @@ func NewConsumer(s *Stream, consume ConsumerFunc[VAL]) *Stream {
 		}()
 
 		for v := range s.values {
-			consumed, stopConsuming := consume(v)
-			if consumed.IsSome() {
-				consumerStream.Write(consumed.Val())
-			}
-			if stopConsuming {
-				break
+			if val, ok := v.(T); ok {
+				consumed, stopConsuming := consume(val)
+				if consumed.IsSome() {
+					consumerStream.Write(consumed.Val())
+				}
+				if stopConsuming {
+					break
+				}
 			}
 		}
 	}()
